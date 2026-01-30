@@ -34,3 +34,4 @@ C:\Users\admin\Desktop\projects\SecureUrlShortener\obj\Debug\net10.0\ref\SecureU
 C:\Users\admin\Desktop\projects\SecureUrlShortener\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\Users\admin\Desktop\projects\SecureUrlShortener\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\admin\Desktop\projects\SecureUrlShortener\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\admin\Desktop\projects\SecureUrlShortener\obj\Debug\net10.0\SecureUrlShortener.sourcelink.json

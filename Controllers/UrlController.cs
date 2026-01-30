@@ -9,18 +9,20 @@ namespace SecureUrlShortener.Controllers
     public class UrlController : ControllerBase
     {
         private readonly UrlSafetyService _urlSafetyService;
+        private readonly ShortCodeGenerator _shortCodeGenerator;
 
-        public UrlController(UrlSafetyService urlSafetyService)
+        public UrlController(
+            UrlSafetyService urlSafetyService,
+            ShortCodeGenerator shortCodeGenerator)
         {
             _urlSafetyService = urlSafetyService;
+            _shortCodeGenerator = shortCodeGenerator;
         }
 
         [HttpPost("shorten")]
         public IActionResult ShortenUrl([FromBody] ShortenRequest request)
         {
-            bool isSafe = _urlSafetyService.IsUrlSafe(request.OriginalUrl);
-
-            if (!isSafe)
+            if (!_urlSafetyService.IsUrlSafe(request.OriginalUrl))
             {
                 return BadRequest(new
                 {
@@ -28,10 +30,13 @@ namespace SecureUrlShortener.Controllers
                 });
             }
 
-            // Temporary short URL
+            var code = _shortCodeGenerator.GenerateCode();
+
+            var shortUrl = $"{Request.Scheme}://{Request.Host}/{code}";
+
             var response = new ShortenResponse
             {
-                ShortUrl = "http://localhost:5158/abc123"
+                ShortUrl = shortUrl
             };
 
             return Ok(response);

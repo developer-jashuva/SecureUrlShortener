@@ -8,6 +8,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<UrlSafetyService>();
+builder.Services.AddSingleton<ShortCodeGenerator>();
+builder.Services.AddSingleton<UrlStoreService>();
 
 var app = builder.Build();
 
