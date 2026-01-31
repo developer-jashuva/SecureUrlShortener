@@ -5,21 +5,23 @@ using SecureUrlShortener.Services;
 namespace SecureUrlShortener.Controllers
 {
     [ApiController]
-    [Route("api/url")]
     public class UrlController : ControllerBase
     {
         private readonly UrlSafetyService _urlSafetyService;
         private readonly ShortCodeGenerator _shortCodeGenerator;
+        private readonly UrlStoreService _urlStoreService;
 
         public UrlController(
             UrlSafetyService urlSafetyService,
-            ShortCodeGenerator shortCodeGenerator)
+            ShortCodeGenerator shortCodeGenerator,
+            UrlStoreService urlStoreService)
         {
             _urlSafetyService = urlSafetyService;
             _shortCodeGenerator = shortCodeGenerator;
+            _urlStoreService = urlStoreService;
         }
 
-        [HttpPost("shorten")]
+        [HttpPost("api/url/shorten")]
         public IActionResult ShortenUrl([FromBody] ShortenRequest request)
         {
             if (!_urlSafetyService.IsUrlSafe(request.OriginalUrl))
@@ -32,14 +34,28 @@ namespace SecureUrlShortener.Controllers
 
             var code = _shortCodeGenerator.GenerateCode();
 
+            _urlStoreService.Save(code, request.OriginalUrl);
+
             var shortUrl = $"{Request.Scheme}://{Request.Host}/{code}";
 
-            var response = new ShortenResponse
+            return Ok(new ShortenResponse
             {
                 ShortUrl = shortUrl
-            };
+            });
+        }
 
-            return Ok(response);
+        // 🔥 REDIRECT ENDPOINT
+        [HttpGet("{code}")]
+        public IActionResult RedirectToOriginal(string code)
+        {
+            var originalUrl = _urlStoreService.GetOriginalUrl(code);
+
+            if (originalUrl == null)
+            {
+                return NotFound("Short URL not found");
+            }
+
+            return Redirect(originalUrl); // HTTP 302
         }
     }
 }
