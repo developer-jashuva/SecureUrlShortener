@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using SecureUrlShortener.Models;
 using SecureUrlShortener.Services;
+using SecureUrlShortener.Data;
+using System;
 
 namespace SecureUrlShortener.Controllers
 {
@@ -9,16 +11,16 @@ namespace SecureUrlShortener.Controllers
     {
         private readonly UrlSafetyService _urlSafetyService;
         private readonly ShortCodeGenerator _shortCodeGenerator;
-        private readonly UrlStoreService _urlStoreService;
+        private readonly AppDbContext _db;
 
         public UrlController(
             UrlSafetyService urlSafetyService,
             ShortCodeGenerator shortCodeGenerator,
-            UrlStoreService urlStoreService)
+            AppDbContext db)
         {
             _urlSafetyService = urlSafetyService;
             _shortCodeGenerator = shortCodeGenerator;
-            _urlStoreService = urlStoreService;
+            _db = db;
         }
 
         [HttpPost("api/url/shorten")]
@@ -34,7 +36,16 @@ namespace SecureUrlShortener.Controllers
 
             var code = _shortCodeGenerator.GenerateCode();
 
-            _urlStoreService.Save(code, request.OriginalUrl);
+            var entity = new ShortUrl
+            {
+                OriginalUrl = request.OriginalUrl,
+                ShortCode = code,
+                CreatedAt = DateTime.UtcNow,
+                ClickCount = 0
+            };
+
+            _db.ShortUrls.Add(entity);
+            _db.SaveChanges();
 
             var shortUrl = $"{Request.Scheme}://{Request.Host}/{code}";
 
@@ -44,18 +55,20 @@ namespace SecureUrlShortener.Controllers
             });
         }
 
-        // 🔥 REDIRECT ENDPOINT
         [HttpGet("{code}")]
         public IActionResult RedirectToOriginal(string code)
         {
-            var originalUrl = _urlStoreService.GetOriginalUrl(code);
+            var record = _db.ShortUrls.FirstOrDefault(x => x.ShortCode == code);
 
-            if (originalUrl == null)
+            if (record == null)
             {
                 return NotFound("Short URL not found");
             }
 
-            return Redirect(originalUrl); // HTTP 302
+            record.ClickCount++;
+            _db.SaveChanges();
+
+            return Redirect(record.OriginalUrl);
         }
     }
 }

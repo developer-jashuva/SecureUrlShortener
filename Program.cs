@@ -1,4 +1,6 @@
 using SecureUrlShortener.Services;
+using Microsoft.EntityFrameworkCore;
+using SecureUrlShortener.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<UrlSafetyService>();
 builder.Services.AddSingleton<ShortCodeGenerator>();
 builder.Services.AddSingleton<UrlStoreService>();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
