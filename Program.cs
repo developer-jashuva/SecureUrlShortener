@@ -26,7 +26,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngular",
+    options.AddPolicy("AllowAll",
         policy =>
         {
             policy.AllowAnyOrigin()
@@ -35,7 +35,7 @@ builder.Services.AddCors(options =>
         });
 });
 var app = builder.Build();
-app.UseCors("AllowAngular");
+app.UseCors("AllowAll");
 
 // Enable Swagger
 app.UseSwagger();
