@@ -21,7 +21,7 @@ builder.Services.AddSingleton<ShortCodeGenerator>();
 builder.Services.AddSingleton<UrlStoreService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 var raw = builder.Configuration.GetConnectionString("DefaultConnection");
