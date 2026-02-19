@@ -26,22 +26,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var raw = builder.Configuration.GetConnectionString("DefaultConnection");
 
-if (string.IsNullOrEmpty(raw))
+if (string.IsNullOrWhiteSpace(raw))
     throw new InvalidOperationException("Connection string not found.");
 
-var uri = new Uri(raw);
-var userInfo = uri.UserInfo.Split(':');
-var port = uri.Port > 0 ? uri.Port : 5432;
-var npgsql =
-    $"Host={uri.Host};" +
-    $"Port={port};" +
-    $"Database={uri.AbsolutePath.TrimStart('/')};" +
-    $"Username={userInfo[0]};" +
-    $"Password={userInfo[1]};" +
-    "SSL Mode=Require;Trust Server Certificate=true";
-
+// Npgsql can directly accept postgres:// URLs
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(npgsql));
+    options.UseNpgsql(raw));
+
 
 
 
