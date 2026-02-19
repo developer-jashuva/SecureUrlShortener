@@ -6,11 +6,6 @@ using SecureUrlShortener.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-
-
-
-
 // Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -20,8 +15,6 @@ builder.Services.AddScoped<UrlSafetyService>();
 builder.Services.AddSingleton<ShortCodeGenerator>();
 builder.Services.AddSingleton<UrlStoreService>();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 var raw = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -29,14 +22,20 @@ var raw = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(raw))
     throw new InvalidOperationException("Connection string not found.");
 
-// Npgsql can directly accept postgres:// URLs
+// Convert Render postgres:// URL → Npgsql format
+var uri = new Uri(raw);
+var userInfo = uri.UserInfo.Split(':');
+
+var npgsql =
+    $"Host={uri.Host};" +
+    $"Port={(uri.Port > 0 ? uri.Port : 5432)};" +
+    $"Database={uri.AbsolutePath.TrimStart('/')};" +
+    $"Username={userInfo[0]};" +
+    $"Password={userInfo[1]};" +
+    "SSL Mode=Require;Trust Server Certificate=true";
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(raw));
-
-
-
-
-
+    options.UseNpgsql(npgsql));
 
 
 builder.Services.AddCors(options =>
