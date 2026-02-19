@@ -139,3 +139,5 @@ C:\Users\admin\Desktop\projects\SecureUrlShortener\obj\Debug\net8.0\refint\Secur
 C:\Users\admin\Desktop\projects\SecureUrlShortener\obj\Debug\net8.0\SecureUrlShortener.pdb
 C:\Users\admin\Desktop\projects\SecureUrlShortener\obj\Debug\net8.0\SecureUrlShortener.genruntimeconfig.cache
 C:\Users\admin\Desktop\projects\SecureUrlShortener\obj\Debug\net8.0\ref\SecureUrlShortener.dll
+C:\Users\admin\Desktop\projects\SecureUrlShortener\bin\Debug\net8.0\Npgsql.dll
+C:\Users\admin\Desktop\projects\SecureUrlShortener\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll

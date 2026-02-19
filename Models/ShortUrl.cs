@@ -2,12 +2,24 @@ using System;
 
 namespace SecureUrlShortener.Models
 {
-    public class ShortUrl
-    {
-        public int Id { get; set; }
-       required public string OriginalUrl { get; set; }
-      required  public string ShortCode { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public int ClickCount { get; set; }
-    }
+  using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+public class ShortUrl
+{
+    public int Id { get; set; }
+
+    [Required]
+    public string OriginalUrl { get; set; }
+
+    [Required]
+    public string ShortCode { get; set; }
+
+    [Column(TypeName = "timestamp")]
+    public DateTime CreatedAt { get; set; }
+
+    public int ClickCount { get; set; }
+}
+
+
 }
