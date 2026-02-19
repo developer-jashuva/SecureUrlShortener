@@ -31,10 +31,10 @@ if (string.IsNullOrEmpty(raw))
 
 var uri = new Uri(raw);
 var userInfo = uri.UserInfo.Split(':');
-
+var port = uri.Port > 0 ? uri.Port : 5432;
 var npgsql =
     $"Host={uri.Host};" +
-    $"Port=5432;" +
+    $"Port={port};" +
     $"Database={uri.AbsolutePath.TrimStart('/')};" +
     $"Username={userInfo[0]};" +
     $"Password={userInfo[1]};" +
