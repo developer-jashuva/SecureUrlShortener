@@ -24,7 +24,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("")));
 
 
-var raw = builder.Configuration.GetConnectionString("postgresql://secureurldb_user:daQxRucKmTTolmCHu2UpxUdF5bG3wMYC@dpg-d6beri94tr6s73dtibb0-a/secureurldb");
+var raw = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrEmpty(raw))
     throw new InvalidOperationException("Connection string not found.");
