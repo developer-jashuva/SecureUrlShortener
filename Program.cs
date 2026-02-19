@@ -21,7 +21,29 @@ builder.Services.AddSingleton<ShortCodeGenerator>();
 builder.Services.AddSingleton<UrlStoreService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("postgresql://secureurldb_user:daQxRucKmTTolmCHu2UpxUdF5bG3wMYC@dpg-d6beri94tr6s73dtibb0-a.oregon-postgres.render.com/secureurldb")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("")));
+
+
+var raw = builder.Configuration.GetConnectionString("postgresql://secureurldb_user:daQxRucKmTTolmCHu2UpxUdF5bG3wMYC@dpg-d6beri94tr6s73dtibb0-a/secureurldb");
+
+var uri = new Uri(raw);
+var userInfo = uri.UserInfo.Split(':');
+
+var npgsql =
+    $"Host={uri.Host};" +
+    $"Port=5432;" +
+    $"Database={uri.AbsolutePath.TrimStart('/')};" +
+    $"Username={userInfo[0]};" +
+    $"Password={userInfo[1]};" +
+    "SSL Mode=Require;Trust Server Certificate=true";
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(npgsql));
+
+
+
+
+
 
 builder.Services.AddCors(options =>
 {
@@ -53,7 +75,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureDeleted();
+  
     db.Database.EnsureCreated();
 }
 
