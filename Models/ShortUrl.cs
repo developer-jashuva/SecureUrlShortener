@@ -10,10 +10,10 @@ public class ShortUrl
     public int Id { get; set; }
 
     [Required]
-    public string OriginalUrl { get; set; }
+    public required string OriginalUrl { get; set; }
 
     [Required]
-    public string ShortCode { get; set; }
+    public required string ShortCode { get; set; }
 
     [Column(TypeName = "timestamp")]
     public DateTime CreatedAt { get; set; }
