@@ -11,5 +11,6 @@ namespace SecureUrlShortener.Data
         }
 
         public DbSet<ShortUrl> ShortUrls { get; set; }
+         public DbSet<AppUser> Users { get; set; }
     }
 }
