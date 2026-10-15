@@ -12,14 +12,17 @@ namespace SecureUrlShortener.Controllers
     {
         private readonly AppDbContext _db;
         private readonly PasswordService _passwordService;
+        private readonly TokenService _tokenService;
 
         public AuthController(
-            AppDbContext db,
-            PasswordService passwordService)
-        {
-            _db = db;
-            _passwordService = passwordService;
-        }
+    AppDbContext db,
+    PasswordService passwordService,
+    TokenService tokenService)
+{
+    _db = db;
+    _passwordService = passwordService;
+    _tokenService = tokenService;
+}
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(
@@ -61,5 +64,41 @@ namespace SecureUrlShortener.Controllers
                 email = user.Email
             });
         }
+ 
+        [HttpPost("login")]
+public async Task<IActionResult> Login(LoginRequest request)
+{
+    var email = request.Email.Trim();
+
+    var user = await _db.Users
+        .SingleOrDefaultAsync(u => u.Email == email);
+
+    if (user == null ||
+        !_passwordService.VerifyPassword(
+            user,
+            user.PasswordHash,
+            request.Password))
+    {
+        return Unauthorized(new
+        {
+            message = "Invalid email or password."
+        });
+    }
+
+    var token = _tokenService.GenerateToken(user);
+
+    return Ok(new
+    {
+        message = "Login successful.",
+        token,
+        user = new
+        {
+            user.Id,
+            user.Username,
+            user.Email
+        }
+    });
+}
+ 
     }
 }
