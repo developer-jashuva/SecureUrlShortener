@@ -15,27 +15,12 @@ builder.Services.AddScoped<UrlSafetyService>();
 builder.Services.AddSingleton<ShortCodeGenerator>();
 builder.Services.AddSingleton<UrlStoreService>();
 
+builder.Services.AddScoped<PasswordService>();
 
-
-var raw = builder.Configuration.GetConnectionString("DefaultConnection");
-
-if (string.IsNullOrWhiteSpace(raw))
-    throw new InvalidOperationException("Connection string not found.");
-
-// Convert Render postgres:// URL → Npgsql format
-var uri = new Uri(raw);
-var userInfo = uri.UserInfo.Split(':');
-
-var npgsql =
-    $"Host={uri.Host};" +
-    $"Port={(uri.Port > 0 ? uri.Port : 5432)};" +
-    $"Database={uri.AbsolutePath.TrimStart('/')};" +
-    $"Username={userInfo[0]};" +
-    $"Password={userInfo[1]};" +
-    "SSL Mode=Require;Trust Server Certificate=true";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(npgsql));
+    options.UseSqlServer(connectionString));
 
 
 builder.Services.AddCors(options =>
@@ -60,6 +45,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
 // using (var scope = app.Services.CreateScope())
 // {
 //     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -68,7 +55,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureDeleted();
+    
     db.Database.EnsureCreated();
 }
 
