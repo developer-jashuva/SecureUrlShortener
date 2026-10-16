@@ -3,11 +3,11 @@ using SecureUrlShortener.Models;
 using SecureUrlShortener.Services;
 using SecureUrlShortener.Data;
 using System.Linq;
-
-
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+
 namespace SecureUrlShortener.Controllers
-{   
+{
     [Authorize]
     [ApiController]
     public class UrlController : ControllerBase
@@ -27,82 +27,106 @@ namespace SecureUrlShortener.Controllers
         }
 
         [HttpPost("api/url/shorten")]
-public IActionResult ShortenUrl([FromBody] ShortenRequest request)
-{
-    if (!_urlSafetyService.IsUrlSafe(request.OriginalUrl))
-    {
-        return BadRequest(new
+        public IActionResult ShortenUrl([FromBody] ShortenRequest request)
         {
-            message = "⚠️ Suspicious or unsafe URL detected. Shortening blocked."
-        });
-    }
+            if (!_urlSafetyService.IsUrlSafe(request.OriginalUrl))
+            {
+                return BadRequest(new
+                {
+                    message = "⚠️ Suspicious or unsafe URL detected. Shortening blocked."
+                });
+            }
 
-    // 🔎 Check if URL already exists
-    var existing = _db.ShortUrls
-                      .FirstOrDefault(x => x.OriginalUrl == request.OriginalUrl);
+            var userId = GetCurrentUserId();
 
-    if (existing != null)
-    {
-        var existingShortUrl = $"{Request.Scheme}://{Request.Host}/{existing.ShortCode}";
+            // 🔎 Check if URL already exists
+            var existing = _db.ShortUrls
+                              .FirstOrDefault(x => x.UserId == userId && x.OriginalUrl == request.OriginalUrl);
 
-        return Ok(new ShortenResponse
+
+
+            if (existing != null)
+            {
+                var existingShortUrl = $"{Request.Scheme}://{Request.Host}/{existing.ShortCode}";
+
+                return Ok(new ShortenResponse
+                {
+                    ShortUrl = existingShortUrl
+                });
+            }
+
+
+            // 🆕 Generate new short code
+            var code = _shortCodeGenerator.GenerateCode();
+
+            var entity = new ShortUrl
+            {
+                OriginalUrl = request.OriginalUrl,
+                ShortCode = code,
+                CreatedAt = DateTime.UtcNow,
+                ClickCount = 0,
+                UserId = userId
+            };
+
+            _db.ShortUrls.Add(entity);
+            _db.SaveChanges();
+
+            var shortUrl = $"{Request.Scheme}://{Request.Host}/{code}";
+
+
+            return Ok(new ShortenResponse
+            {
+                ShortUrl = shortUrl
+            });
+        }
+
+
+
+
+
+        [HttpGet("api/url/all")]
+        public IActionResult GetAllUrls()
         {
-            ShortUrl = existingShortUrl
-        });
-    }
+            var userId = GetCurrentUserId();
+            var list = _db.ShortUrls
+                          .OrderByDescending(x => x.CreatedAt)
+                          .Where(x => x.UserId == userId)
+                          .Select(x => new UrlHistoryItem
+                          {
+                              OriginalUrl = x.OriginalUrl,
+                              ShortUrl = $"{Request.Scheme}://{Request.Host}/{x.ShortCode}",
+                              ClickCount = x.ClickCount,
+                              CreatedAt = x.CreatedAt
+                          })
+                          .ToList();
 
-    // 🆕 Generate new short code
-    var code = _shortCodeGenerator.GenerateCode();
+            return Ok(list);
+        }
 
-    var entity = new ShortUrl
-    {
-        OriginalUrl = request.OriginalUrl,
-        ShortCode = code,
-        CreatedAt = DateTime.UtcNow,
-        ClickCount = 0
-    };
 
-    _db.ShortUrls.Add(entity);
-    _db.SaveChanges();
 
-    var shortUrl = $"{Request.Scheme}://{Request.Host}/{code}";
 
-    return Ok(new ShortenResponse
-    {
-        ShortUrl = shortUrl
-    });
-}
+        [HttpDelete("api/url/{code}")]
+        public IActionResult DeleteUrl(string code)
+        {
+            var userId = GetCurrentUserId();
 
-[HttpGet("api/url/all")]
-public IActionResult GetAllUrls()
-{
-    var list = _db.ShortUrls
-                  .OrderByDescending(x => x.CreatedAt)
-                  .Select(x => new UrlHistoryItem
-                  {
-                      OriginalUrl = x.OriginalUrl,
-                      ShortUrl = $"{Request.Scheme}://{Request.Host}/{x.ShortCode}",
-                      ClickCount = x.ClickCount,
-                      CreatedAt = x.CreatedAt
-                  })
-                  .ToList();
+            var record = _db.ShortUrls
+                .FirstOrDefault(x =>
+                    x.ShortCode == code &&
+                    x.UserId == userId);
 
-    return Ok(list);
-}
+            if (record == null)
+            {
+                return NotFound();
+            }
 
-    [HttpDelete("api/url/{code}")]
-public IActionResult DeleteUrl(string code)
-{
-    var record = _db.ShortUrls.FirstOrDefault(x => x.ShortCode == code);
+            _db.ShortUrls.Remove(record);
+            _db.SaveChanges();
 
-    if (record == null)
-        return NotFound();
+            return Ok();
 
-    _db.ShortUrls.Remove(record);
-    _db.SaveChanges();
-
-    return Ok();
-}
+        }
 
 
 
@@ -121,5 +145,22 @@ public IActionResult DeleteUrl(string code)
 
             return Redirect(record.OriginalUrl);
         }
+
+
+
+        private int GetCurrentUserId()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId) ||
+                !int.TryParse(userId, out var id))
+            {
+                throw new UnauthorizedAccessException(
+                    "Invalid authenticated user.");
+            }
+
+            return id;
+        }
+
     }
 }
