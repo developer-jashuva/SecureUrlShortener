@@ -5,8 +5,10 @@ using SecureUrlShortener.Data;
 using System.Linq;
 
 
+using Microsoft.AspNetCore.Authorization;
 namespace SecureUrlShortener.Controllers
-{
+{   
+    [Authorize]
     [ApiController]
     public class UrlController : ControllerBase
     {

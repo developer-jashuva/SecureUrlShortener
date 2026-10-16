@@ -4,6 +4,8 @@ using SecureUrlShortener.Data;
 using SecureUrlShortener.Models;
 using SecureUrlShortener.Services;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace SecureUrlShortener.Controllers
 {
     [ApiController]
@@ -23,7 +25,7 @@ namespace SecureUrlShortener.Controllers
     _passwordService = passwordService;
     _tokenService = tokenService;
 }
-
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register(
             RegisterRequest request)
@@ -65,6 +67,7 @@ namespace SecureUrlShortener.Controllers
             });
         }
  
+        [AllowAnonymous]
         [HttpPost("login")]
 public async Task<IActionResult> Login(LoginRequest request)
 {
