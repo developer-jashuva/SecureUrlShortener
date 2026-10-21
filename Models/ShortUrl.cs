@@ -15,11 +15,14 @@ public class ShortUrl
     [Required]
     public required string ShortCode { get; set; }
 
-    [Column(TypeName = "timestamp with time zone")]
-    public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
 
 
     public int ClickCount { get; set; }
+
+    public int UserId { get; set; }
+
+    public AppUser User { get; set; } = null!;
 }
 
 
