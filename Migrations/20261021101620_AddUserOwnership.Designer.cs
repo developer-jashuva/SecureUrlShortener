@@ -12,7 +12,7 @@ using SecureUrlShortener.Data;
 namespace SecureUrlShortener.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261021093416_AddUserOwnership")]
+    [Migration("20261021101620_AddUserOwnership")]
     partial class AddUserOwnership
     {
         /// <inheritdoc />
