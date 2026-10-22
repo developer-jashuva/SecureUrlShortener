@@ -129,7 +129,7 @@ namespace SecureUrlShortener.Controllers
         }
 
 
-
+        [AllowAnonymous]
         [HttpGet("{code}")]
         public IActionResult RedirectToOriginal(string code)
         {
