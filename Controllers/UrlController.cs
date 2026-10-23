@@ -45,7 +45,7 @@ namespace SecureUrlShortener.Controllers
 
 
 
-        [HttpPost("api/url/shorten")]
+        [HttpPost("shorten")]
         public IActionResult ShortenUrl([FromBody] ShortenRequest request)
         {
             if (!_urlSafetyService.IsUrlSafe(request.OriginalUrl))
@@ -121,7 +121,7 @@ namespace SecureUrlShortener.Controllers
 
 
 
-        [HttpDelete("api/url/{code}")]
+        [HttpDelete("{code}")]
         public IActionResult DeleteUrl(string code)
         {
             var userId = GetCurrentUserId();
