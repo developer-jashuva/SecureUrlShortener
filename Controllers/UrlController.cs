@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace SecureUrlShortener.Controllers
 {
     [Authorize]
+    [Route("api/[controller]")]
     [ApiController]
     public class UrlController : ControllerBase
     {
@@ -99,7 +100,7 @@ namespace SecureUrlShortener.Controllers
         }
 
 
-        [HttpGet("api/url/all")]
+        [HttpGet("all")]
         public IActionResult GetAllUrls()
         {
             var userId = GetCurrentUserId();
@@ -117,7 +118,6 @@ namespace SecureUrlShortener.Controllers
 
             return Ok(list);
         }
-
 
 
 
