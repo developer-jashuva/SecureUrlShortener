@@ -26,6 +26,24 @@ namespace SecureUrlShortener.Controllers
             _db = db;
         }
 
+        private int GetCurrentUserId()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId) ||
+                !int.TryParse(userId, out var id))
+            {
+                throw new UnauthorizedAccessException(
+                    "Invalid authenticated user.");
+            }
+
+            return id;
+        }
+
+
+
+
+
         [HttpPost("api/url/shorten")]
         public IActionResult ShortenUrl([FromBody] ShortenRequest request)
         {
@@ -79,9 +97,6 @@ namespace SecureUrlShortener.Controllers
                 ShortUrl = shortUrl
             });
         }
-
-
-
 
 
         [HttpGet("api/url/all")]
@@ -148,19 +163,32 @@ namespace SecureUrlShortener.Controllers
 
 
 
-        private int GetCurrentUserId()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+    
+        [HttpGet("analytics")]
+public IActionResult GetAnalytics()
+{
+    var userId = GetCurrentUserId();
 
-            if (string.IsNullOrEmpty(userId) ||
-                !int.TryParse(userId, out var id))
-            {
-                throw new UnauthorizedAccessException(
-                    "Invalid authenticated user.");
-            }
+    var userUrls = _db.ShortUrls
+        .Where(url => url.UserId == userId);
 
-            return id;
-        }
+    var totalUrls = userUrls.Count();
 
+    var totalClicks = userUrls
+        .Sum(url => (int?)url.ClickCount) ?? 0;
+
+    return Ok(new
+    {
+        totalUrls,
+        totalClicks,
+        activeUrls = totalUrls
+    });
+}
+    
+    
     }
+
+
+    
 }
